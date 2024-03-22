@@ -1,0 +1,39 @@
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form > * {
+  margin: 0.5rem;
+}
+
+.favorite {
+  border: solid 1px dodgerBlue;
+  background-color: rgba(91, 221, 117, 0.484);
+  width: 120px;
+}
+
+.least-favorite {
+  border: solid 1px dodgerBlue;
+  background-color: rgba(206, 116, 112, 0.5);
+  width: 120px;
+}
+.products{
+  border: 1.5px solid rgba(178, 178, 178, 0.603);
+  width: fit-content;
+  margin: 10px auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  list-style-type: none;
+  font-weight: bold;
+}
+
+.products li{
+  display: flex;
+  gap: 15px;
+}
+.products button{
+  width: 30px;
+}
