@@ -1,39 +1,119 @@
+*{
+  box-sizing: border-box;
+}
 form {
   display: flex;
   flex-direction: column;
+}
+form input{
+  padding: 5px;
+}
+form button{
+  padding: 5px;
 }
 
 form > * {
   margin: 0.5rem;
 }
 
-.favorite {
-  border: solid 1px dodgerBlue;
-  background-color: rgba(91, 221, 117, 0.484);
-  width: 120px;
+.login-form, .register-form{
+  width: 18rem;
+  margin: 0 auto;
+}
+h1, h3{
+  margin: 0;
+}
+.logout{
+  width: fit-content;
+  margin-left: auto;
+}
+.logout button{
+  margin-left: 10px;
+  width: 75px;
+  background-color: rgba(229, 147, 147, 0.648);
+  border: 1.5px solid rgb(179, 179, 179);
+  border-radius: 5px;
+  padding: 5px;
+}
+.logout button:hover{
+  background-color: rgba(189, 76, 76, 0.703);
+  border: 1.5px solid rgb(68, 74, 188);
 }
 
-.least-favorite {
-  border: solid 1px dodgerBlue;
-  background-color: rgba(206, 116, 112, 0.5);
-  width: 120px;
-}
 .products{
-  border: 1.5px solid rgba(178, 178, 178, 0.603);
-  width: fit-content;
+  border: 1.5px solid rgba(178, 178, 178, 0.603); 
   margin: 10px auto;
   padding: 10px;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 15px;
   list-style-type: none;
   font-weight: bold;
+  border-radius: 5px;
 }
 
 .products li{
+  flex: 0 0 calc(33%-15px);
+  width: 280px;
   display: flex;
   gap: 15px;
+  text-align: center;
 }
+
+.favorite, .least-favorite{
+  border: solid 1px rgba(87, 151, 215, 0.742);
+  width: 100%;
+  height: 85px;
+  border-radius: 5px;
+  padding: 10px;
+
+} 
+.favorite {
+  background-color: rgba(91, 221, 117, 0.484);
+}
+
 .products button{
-  width: 30px;
+  width: 70px;
+}
+
+
+.dialog-box{
+  background-color: rgb(154, 90, 215);
+  border: 1.5px solid rgba(101, 101, 101, 0.749);
+  border-radius: 5px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: 200ms ease-in-out;
+  z-index: 10;
+  background-color: white;
+  width: 40%;
+  padding: 0;
+}
+.dialog-box p{
+  padding: 20px;
+  margin: 0;
+}
+.dialog-box button{
+  margin: 5px 20px;
+  background-color: rgba(245, 245, 220, 0.463);
+  border: 1.5px solid rgba(128, 128, 128, 0.541);
+  padding: 5px 15px;
+  border-radius: 5px;
+}
+.dialog-box button:hover{
+  background-color: rgba(234, 234, 178, 0.626);;
+  border: 1.5px solid rgba(45, 25, 88, 0.541); 
+}
+
+.overlay{
+  position: fixed;
+  transition: 200ms ease-in-out;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(232, 232, 232, 0.863);
+  pointer-events: all; 
 }

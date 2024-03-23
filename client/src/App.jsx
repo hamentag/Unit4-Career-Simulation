@@ -1,32 +1,80 @@
+
+  
+
+  // const [error, setError] = useState(null);
+  // const [usr, setUsr] = useState({});
+
+  // const [nextPath, setNextPath] = useState('/');
+
+  // const navigate = useNavigate();
+
+
 import { useState, useEffect } from 'react'
 
-const LoginRegister = ({ toDo, label })=> {
-  const [username, setUsername] = useState('');
+const Login = ({ login })=> {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const submit = ev => {
+  const submitT0Login = ev => {
     ev.preventDefault();
-    toDo({ username, password });
+    login({ email, password });
   }
   return (
     <>
-     <form onSubmit={ submit }>
-      <input value={ username } placeholder='username' onChange={ ev=> setUsername(ev.target.value)}/>
+     <form onSubmit={ submitT0Login } >
+      <input value={ email } placeholder='email' onChange={ ev=> setEmail(ev.target.value)}/>
       <input value={ password} placeholder='password' onChange={ ev=> setPassword(ev.target.value)}/>
-      <button disabled={ !username || !password }>{label}</button>
+      <button disabled={ !(email && password) }>Log In</button>
+      </form>
+    </>
+  );
+}
+
+const Register = ({ register })=> {
+  const [firstname, setFirstname ] = useState('');
+  const [lastname, setLastname] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const submitT0Register = ev => {
+    ev.preventDefault();
+    register({ email, password, firstname, lastname });
+  }
+  return (
+    <>
+     <form onSubmit={ submitT0Register }>
+      <input value={ firstname} placeholder='First Name' onChange={ ev=> setFirstname(ev.target.value)}/>
+      <input value={ lastname} placeholder='Last Name' onChange={ ev=> setLastname(ev.target.value)}/>
+      <input value={ email } type='emaill' placeholder='email' onChange={ ev=> setEmail(ev.target.value)}/>
+      <input value={ password} placeholder='password' onChange={ ev=> setPassword(ev.target.value)}/>
+      <button disabled={ !(firstname && lastname && email && password) }>Continuer</button>
       </form>
     </>
   );
 }
 
 
+const DialogBox = ({msg, setMsg}) => {
+  return(
+    <>
+        <div className="dialog-box">
+            <div className="dialog-box-main">
+                <p>{msg}</p>
+                <button onClick={()=>{setMsg(null)}}>Close</button>
+            </div>
+        </div>
+        <div className="overlay" onClick={()=>{setMsg(null)}}></div>
+    </>
+)
+}
+
 function App() {
   const [auth, setAuth] = useState({});
   const [products, setProducts] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  const [cart, setCart] = useState([]);
 
-  const [hasAccount, setHasAccount] = useState(true)
-
+  const [msg, setMsg] = useState(null);
+  const [hasAccount, setHasAccount] = useState(true);
   
   useEffect(()=> {
     const token = window.localStorage.getItem('token');
@@ -50,30 +98,30 @@ function App() {
   }, []);
 
   useEffect(()=> {
-    const fetchFavorites = async()=> {
-      const response = await fetch(`/api/users/${auth.id}/favorites`, {
+    const fetchCart = async()=> {
+      const response = await fetch(`/api/users/${auth.id}/cart`, {
         headers: {
           authorization: window.localStorage.getItem('token')
         }
       });
       const json = await response.json();
       if(response.ok){
-        setFavorites(json);
+        setCart(json);
       }
       else{
-        console.log(json);
+        console.error("") ///
       }
     };
     if(auth.id){
-      fetchFavorites();
+      fetchCart();
     }
     else {
-      setFavorites([]);
+      setCart([]);
     }
   }, [auth]);
 
-  const createFavorite = async(product_id)=> {
-    const response = await fetch(`/api/users/${auth.id}/favorites`, {
+  const addToCart = async(product_id)=> {
+    const response = await fetch(`/api/users/${auth.id}/cart`, {
       method: 'POST',
       body: JSON.stringify({ product_id}),
       headers: {
@@ -83,21 +131,21 @@ function App() {
     });
     const json = await response.json();
     if(response.ok){
-      setFavorites([...favorites, json]);
+      setCart([...cart, json]);
     }
     else {
-      console.log(json);
+      // console.log(json);
     }
   };
 
-  const removeFavorite = async(id)=> {
-    const response = await fetch(`/api/users/${auth.id}/favorites/${id}`, {
+  const removeFromCart = async(id)=> {
+    const response = await fetch(`/api/users/${auth.id}/cart/${id}`, {
       method: 'DELETE',
       headers: {
         authorization: window.localStorage.getItem('token')
       }
     });
-    setFavorites(favorites.filter(favorite => favorite.id !== id));
+    setCart(cart.filter(item => item.product_id !== id));
   };
 
   const attemptLoginWithToken = async()=> {
@@ -129,67 +177,82 @@ function App() {
       window.localStorage.setItem('token', json.token);
       attemptLoginWithToken();
     }
+    else{
+      console.error(json.error)
+      setMsg("Incorrect email or password. Please try again.")
+    }
   };
 
-  const register = async(credentials)=> {
+  const register = async(newUserData)=> {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(newUserData),
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    const result = await response.json();
+    const result = await response.json();    
     if(response.ok){
-      console.log("Success! Your account has been created.")
+      setMsg("Success! Your account has been created.");
+      login({ email: newUserData.email, password: newUserData.password });  
     }
     else{
-      console.error(result.error)
+      console.error(result.error);
+      setMsg("Account creation failed with provided information.");
     }
   };
-
 
   const logout = ()=> {
     window.localStorage.removeItem('token');
     setAuth({});
   }
 
-
   return (
     <>
+      <h1>Store</h1>
       {
         !auth.id ? <>
           {hasAccount? 
-            <>
-              <h3>Log In</h3>
-              <LoginRegister toDo={ login } label={'Log In'}/>
+            <div className='login-form'>
+              
+              <Login login={login}/>
               Don't have an account? 
               <button onClick={()=>{setHasAccount(false)}}>Sign Up</button>
-            </>
+            </div>
             : 
-            <>
-              <h3>New User</h3>
-              <LoginRegister toDo={ register } label={'Create Account'}/>
+            <div className='register-form'>
+              <h3>Create account</h3>
+              <Register register={register}/>
               Already have an account?
-              <button onClick={()=>{setHasAccount(true)}}>Login</button>
-            </>
+              <button onClick={()=>{setHasAccount(true)}}>Log In</button>
+            </div>
           }
         </> 
-        : <button onClick={ logout }>Logout { auth.username }</button>
+        : <div className='logout'>
+          { auth.firstname }
+          <button onClick={ logout }>Logout </button>
+        </div>
       }
+
+      {msg && <DialogBox msg={msg} setMsg={setMsg}/>}
+
       <ul className='products'>
         {
           products.map( product => {
-            const isFavorite = favorites.find(favorite => favorite.product_id === product.id);
+            const isInCart = cart.find(item => item.product_id === product.id);
             return (
               <li key={ product.id }>
-                {
-                  auth.id && isFavorite && <button onClick={()=> removeFavorite(isFavorite.id)}>-</button>
-                }
-                {
-                  auth.id && !isFavorite && <button onClick={()=> createFavorite(product.id)}>+</button>
-                }
-                <div  className={ isFavorite ? 'favorite': 'least-favorite'}>{ product.name }</div>
+                <div  className={ isInCart ? 'favorite': 'least-favorite'}>
+                  <div>{ product.title }</div>
+                  <div>
+                    {
+                      auth.id && isInCart && <button onClick={()=> removeFromCart(product.id)}>remove</button>
+                    }
+                    {
+                      auth.id && !isInCart && <button onClick={()=> addToCart(product.id)}>add</button>
+                    }
+                  </div>
+                </div>
               </li>
             );
           })

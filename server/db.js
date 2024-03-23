@@ -13,19 +13,21 @@ const createTables = async()=> {
     DROP TABLE IF EXISTS cart_products cascade;
     CREATE TABLE users(
       id UUID PRIMARY KEY,
-      firstname VARCHAR(40),
-      lastname VARCHAR(40),
+      firstname VARCHAR(40) NOT NULL,
+      lastname VARCHAR(40) NOT NULL,
       email VARCHAR(155) UNIQUE NOT NULL,
       password VARCHAR(155) NOT NULL,
-      phone VARCHAR(25) NOT NULL,
-      is_admin BOOLEAN DEFAULT false NOT NULL,
-      is_engineer BOOLEAN DEFAULT false NOT NULL
+      phone VARCHAR(25),
+      is_admin BOOLEAN DEFAULT false,
+      is_engineer BOOLEAN DEFAULT false
     );
     CREATE TABLE products(
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      name VARCHAR(25) UNIQUE NOT NULL,
+      title VARCHAR(35) UNIQUE NOT NULL,
+      category VARCHAR(35) NOT NULL,
       price NUMERIC NOT NULL,
-      description VARCHAR(155) UNIQUE NOT NULL,
+      dimensions VARCHAR(45) NOT NULL,
+      characteristics VARCHAR(255) NOT NULL,
       inventory INTEGER NOT NULL
     );
     CREATE TABLE cart_products(
@@ -65,11 +67,11 @@ const createUser = async({ firstname, lastname, email, phone, password, is_admin
   return response.rows[0];
 };
 
-const createProduct = async({ name, price, description, inventory })=> {
+const createProduct = async({ title, category, price, dimensions, characteristics, inventory })=> {
   const SQL = `
-    INSERT INTO products(id, name, price, description, inventory) VALUES($1, $2, $3, $4, $5 ) RETURNING *
+    INSERT INTO products(id, title, category, price, dimensions, characteristics, inventory) VALUES($1, $2, $3, $4, $5, $6, $7 ) RETURNING *
   `;
-  const response = await client.query(SQL, [uuid.v4(), name, price, description, inventory]);
+  const response = await client.query(SQL, [uuid.v4(), title, category, price, dimensions, characteristics, inventory]);
   return response.rows[0];
 };
 
@@ -141,7 +143,7 @@ const findUserWithToken = async(token) => {
     throw error;
   }
   const SQL = `
-    SELECT id, email
+    SELECT id, firstname, lastname, email, phone, is_admin, is_engineer
     FROM users
     WHERE id = $1
   `;
