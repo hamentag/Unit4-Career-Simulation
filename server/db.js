@@ -73,6 +73,20 @@ const createProduct = async({ name, price, description, inventory })=> {
   return response.rows[0];
 };
 
+// const addToCart = async({ user_id, product_id })=> {
+//   const SQL = `
+//     INSERT INTO cart_products(id, user_id, product_id, qty) VALUES($1, $2, $3, $4) RETURNING *
+//   `;
+//   const response = await client.query(SQL, [uuid.v4(), user_id, product_id, 1]);
+//   return response.rows[0];
+// };
+
+
+// incrementPrdCart
+
+// update (para + 0r -)
+
+
 const addToCart = async({ user_id, product_id, qty })=> {
   const SQL = `
     -- PostgreSQL upsert feature: "Update the quantity of a product if it exists 
@@ -89,6 +103,15 @@ const addToCart = async({ user_id, product_id, qty })=> {
 };
 
 
+
+const deleteCartProduct = async({ user_id, id })=> {
+  const SQL = `
+    DELETE FROM cart_products WHERE user_id=$1 AND id=$2
+  `;
+  await client.query(SQL, [user_id, id]);
+};
+
+
 const authenticate = async({ email, password })=> {
   const SQL = `
     SELECT id, password
@@ -102,8 +125,35 @@ const authenticate = async({ email, password })=> {
     throw error;
   }
   const token = await jwt.sign({ id: response.rows[0].id}, JWT);
-  return { token };
+  return { token }; //
 };
+
+
+const findUserWithToken = async(token) => {
+  let id;
+  try {
+    const payload = await jwt.verify(token, JWT);
+    id = payload.id;
+  }
+  catch(ex){
+    const error = Error('not authorized');
+    error.status = 401;
+    throw error;
+  }
+  const SQL = `
+    SELECT id, email
+    FROM users
+    WHERE id = $1
+  `;
+  const response = await client.query(SQL, [id]);
+  if(!response.rows.length){
+    const error = Error('not authorized');
+    error.status = 401;
+    throw error;
+  }
+  return response.rows[0];
+
+}
 
 const fetchUsers = async()=> {
   const SQL = `
@@ -138,5 +188,7 @@ module.exports = {
   fetchProducts,
   fetchCartProducts,
   addToCart,
-  authenticate
+  deleteCartProduct,
+  authenticate,
+  findUserWithToken
 };

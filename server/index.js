@@ -7,7 +7,9 @@ const {
     fetchUsers,
     fetchProducts,
     fetchCartProducts,
-    authenticate
+    deleteCartProduct,
+    authenticate,
+    findUserWithToken
   } = require('./db');
   const express = require('express');
   const app = express();
@@ -17,6 +19,17 @@ const {
   const path = require('path');
   app.get('/', (req, res)=> res.sendFile(path.join(__dirname, '../client/dist/index.html')));
   app.use('/assets', express.static(path.join(__dirname, '../client/dist/assets'))); 
+  
+  
+  const isLoggedIn = async(req, res, next)=> {
+    try {
+      req.user = await findUserWithToken(req.headers.authorization);
+      next();
+    }
+    catch(ex){
+      next(ex);
+    }
+  };
   
   app.post('/api/auth/login', async(req, res, next)=> {
     try {
@@ -35,7 +48,16 @@ const {
       next(ex);
     }
   });
-    
+  
+  app.get('/api/auth/me', isLoggedIn, (req, res, next)=> {
+    try {
+      res.send(req.user);
+    }
+    catch(ex){
+      next(ex);
+    }
+  });
+  
   
   app.get('/api/users', async(req, res, next)=> {
     try {
@@ -46,7 +68,7 @@ const {
     }
   });
   
-  app.get('/api/users/:id/cart', async(req, res, next)=> {
+  app.get('/api/users/:id/cart', isLoggedIn, async(req, res, next)=> {
     try {
       res.send(await fetchCartProducts(req.params.id));
     }
@@ -54,10 +76,20 @@ const {
       next(ex);
     }
   });
-                               
-  app.post('/api/users/:id/cart', async(req, res, next)=> {
+
+  app.post('/api/users/:id/cart',  isLoggedIn,async(req, res, next)=> {
     try {
       res.status(201).send(await addToCart({ user_id: req.params.id, product_id: req.body.product_id, qty: req.body.qty}));
+    }
+    catch(ex){
+      next(ex);
+    }
+  });
+  
+  app.delete('/api/users/:user_id/cart/:id', isLoggedIn, async(req, res, next)=> {
+    try {
+      await deleteCartProduct({user_id: req.params.user_id, id: req.params.id });
+      res.sendStatus(204);
     }
     catch(ex){
       next(ex);
@@ -99,6 +131,10 @@ const {
       createUser({firstname: 'Mark', lastname: 'Bragg', 
                   email:'mark@com', phone: '239138212', password: 'mark_pw', 
                   is_admin: false, is_engineer: true}),
+
+
+        // { name, price, description, inventory }
+
 
       createProduct({ name: 'foo', price: 15, description: "some descr.. foo", inventory:37 }),
       createProduct({ name: 'bar', price: 11, description: "some descr.. bar", inventory:37 }),
