@@ -20,8 +20,20 @@ form > * {
   width: 18rem;
   margin: 0 auto;
 }
-h1, h3{
+h1, h2, h3, h4{
   margin: 0;
+}
+
+.site-Title{
+  background-color: rgba(130, 206, 130, 0.306);
+  width: 250px;
+}
+ul{
+  list-style-type: none;
+}
+a {
+  color: navy;
+  text-decoration: none;
 }
 .logout{
   width: fit-content;
@@ -77,8 +89,31 @@ h1, h3{
 }
 
 
+.product-details{
+  width: 28rem;
+  margin: 10px auto;
+  
+}
+
+th{
+  text-align: start;
+}
+td{
+  padding: 5px 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 .dialog-box{
-  background-color: rgb(154, 90, 215);
   border: 1.5px solid rgba(101, 101, 101, 0.749);
   border-radius: 5px;
   position: fixed;
@@ -88,19 +123,22 @@ h1, h3{
   transition: 200ms ease-in-out;
   z-index: 10;
   background-color: white;
-  width: 40%;
+  width: 27rem;
   padding: 0;
+  display:flex;
+  justify-content: space-between;
 }
 .dialog-box p{
   padding: 20px;
   margin: 0;
 }
 .dialog-box button{
-  margin: 5px 20px;
+  margin: 5px;
   background-color: rgba(245, 245, 220, 0.463);
   border: 1.5px solid rgba(128, 128, 128, 0.541);
-  padding: 5px 15px;
+  padding: 3px 10px;
   border-radius: 5px;
+  height: fit-content;
 }
 .dialog-box button:hover{
   background-color: rgba(234, 234, 178, 0.626);;

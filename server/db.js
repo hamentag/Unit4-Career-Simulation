@@ -43,7 +43,7 @@ const createTables = async()=> {
     RETURNS TRIGGER AS $$
     BEGIN
         IF (SELECT inventory FROM products WHERE id = NEW.product_id) < NEW.qty THEN
-            RAISE EXCEPTION 'Cart quantity cannot exceed inventory';
+            RAISE EXCEPTION 'Oops! It seems you ve added more items to your cart than we have in stock.';
         END IF;
         RETURN NEW;
     END;
@@ -108,11 +108,10 @@ const addToCart = async({ user_id, product_id, qty })=> {
 
 const deleteCartProduct = async({ user_id, id })=> {
   const SQL = `
-    DELETE FROM cart_products WHERE user_id=$1 AND id=$2
+    DELETE FROM cart_products WHERE user_id=$1 AND product_id=$2
   `;
   await client.query(SQL, [user_id, id]);
 };
-
 
 const authenticate = async({ email, password })=> {
   const SQL = `
@@ -181,6 +180,15 @@ const fetchCartProducts = async(user_id)=> {
   return response.rows;
 };
 
+const fetchSingleProduct = async(id) =>{
+  const SQL = `
+    SELECT * FROM products where id = $1
+  `;
+  const response = await client.query(SQL, [id]);
+  return response.rows[0];
+};
+
+
 module.exports = {
   client,
   createTables,
@@ -192,5 +200,6 @@ module.exports = {
   addToCart,
   deleteCartProduct,
   authenticate,
-  findUserWithToken
+  findUserWithToken,
+  fetchSingleProduct
 };

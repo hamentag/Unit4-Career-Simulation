@@ -9,7 +9,8 @@ const {
     fetchCartProducts,
     deleteCartProduct,
     authenticate,
-    findUserWithToken
+    findUserWithToken,
+    fetchSingleProduct
   } = require('./db');
   const express = require('express');
   const app = express();
@@ -104,6 +105,18 @@ const {
       next(ex);
     }
   });
+
+  app.get('/api/products/:id', async(req, res, next)=> {
+    try {
+      res.send(await fetchSingleProduct(req.params.id ));
+    }
+    catch(ex){
+      next(ex);
+    }
+  });
+
+
+
   
   app.use((err, req, res, next)=> {
     console.log(err);
@@ -144,7 +157,7 @@ const {
 
 
     createProduct({ title: 'NovaTech Nexus X', category: 'Smartphone',  price: 799.99, dimensions: '5.8 x 2.8 x 0.3', characteristics: '6.4" Super AMOLED display, Snapdragon 888 processor, 128GB storage, 12MP dual camera, 5G connectivity', inventory:37 }),
-    createProduct({ title: 'QuantumTech Quantum Q', category: 'Smartphone',  price: 899.99, dimensions: '6.1 x 3.0 x 0.4', characteristics: '6.7" OLED display, Quantum processor, 256GB storage, 108MP triple camera, 5G connectivity', inventory:36 }),
+    createProduct({ title: 'QuantumTech Quantum Q', category: 'Smartphone',  price: 899.99, dimensions: '6.1 x 3.0 x 0.4', characteristics: '6.7" OLED display, Quantum processor, 256GB storage, 108MP triple camera, 5G connectivity', inventory:0 }),
     createProduct({ title: 'AstroGlide StellarPhone', category: 'Smartphone', price: 749.99, dimensions: '6.0 x 3.2 x 0.3', characteristics: '6.2" LCD display, AstroCore processor, 64GB storage, 16MP dual camera, 4G connectivity', inventory:27 }),
     
 

@@ -1,15 +1,11 @@
 
-  
-
-  // const [error, setError] = useState(null);
-  // const [usr, setUsr] = useState({});
-
-  // const [nextPath, setNextPath] = useState('/');
-
-  // const navigate = useNavigate();
-
-
 import { useState, useEffect } from 'react'
+import { Routes, Route, Link, useNavigate, useLocation, Navigate } from "react-router-dom";
+
+import Products from './components/Products'
+import SingleProduct from './components/SingleProduct';
+import Cart from './components/Cart';
+import Account from './components/Account';
 
 const Login = ({ login })=> {
   const [email, setEmail] = useState('');
@@ -53,15 +49,15 @@ const Register = ({ register })=> {
   );
 }
 
-
 const DialogBox = ({msg, setMsg}) => {
   return(
     <>
         <div className="dialog-box">
             <div className="dialog-box-main">
-                <p>{msg}</p>
-                <button onClick={()=>{setMsg(null)}}>Close</button>
+                <p>{msg.txt}</p>
+                <div>{msg.more}</div>                
             </div>
+            <button onClick={()=>{setMsg(null)}} style={{fontSize:'18px'}}> &times; </button>
         </div>
         <div className="overlay" onClick={()=>{setMsg(null)}}></div>
     </>
@@ -75,6 +71,10 @@ function App() {
 
   const [msg, setMsg] = useState(null);
   const [hasAccount, setHasAccount] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
   
   useEffect(()=> {
     const token = window.localStorage.getItem('token');
@@ -82,6 +82,7 @@ function App() {
       attemptLoginWithToken();
     }
   }, []);
+
 
   useEffect(()=> {
     const fetchProducts = async()=> {
@@ -91,11 +92,13 @@ function App() {
         setProducts(json);
       }
       else{
-        console.log(json);
+        console.error(response.error);
+        setMsg("Oops! unable to fetch product list currently.")            
       }
     };
     fetchProducts();
   }, []);
+  
 
   useEffect(()=> {
     const fetchCart = async()=> {
@@ -120,10 +123,11 @@ function App() {
     }
   }, [auth]);
 
-  const addToCart = async(product_id)=> {
+  const addToCart = async(product_id, qty)=> {
+    console.log(qty)
     const response = await fetch(`/api/users/${auth.id}/cart`, {
       method: 'POST',
-      body: JSON.stringify({ product_id}),
+      body: JSON.stringify({ product_id, qty}),
       headers: {
         'Content-Type': 'application/json',
         authorization: window.localStorage.getItem('token')
@@ -132,9 +136,22 @@ function App() {
     const json = await response.json();
     if(response.ok){
       setCart([...cart, json]);
+      console.log(location.pathname)
+      setMsg({
+        txt: "Product has been successfully added to your cart.",
+        more: <div>qty: {qty}
+          <button onClick={()=>{navigate('/cart'); setMsg(null)}}>Check Cart</button>
+          <button onClick={()=>{setMsg(null)}}>Continue Shopping</button>
+        </div>
+      });
     }
     else {
-      // console.log(json);
+      console.error(json.error);
+      setMsg({
+        txt: json.error,
+        more: <button onClick={()=>{setMsg(null)}}>OK</button>
+      })
+
     }
   };
 
@@ -145,7 +162,14 @@ function App() {
         authorization: window.localStorage.getItem('token')
       }
     });
-    setCart(cart.filter(item => item.product_id !== id));
+    if(response.ok){
+      setCart(cart.filter(item => item.product_id !== id));
+      setMsg({
+        txt: "Product has been successfully removed from your cart.",
+        more: <button onClick={()=>{setMsg(null)}}>OK</button>
+      })
+    }
+   
   };
 
   const attemptLoginWithToken = async()=> {
@@ -179,7 +203,9 @@ function App() {
     }
     else{
       console.error(json.error)
-      setMsg("Incorrect email or password. Please try again.")
+      setMsg({
+        txt: "Incorrect email or password. Please try again."
+      })
     }
   };
 
@@ -193,12 +219,17 @@ function App() {
     });
     const result = await response.json();    
     if(response.ok){
-      setMsg("Success! Your account has been created.");
+      setMsg({
+        txt: "Success! Your account has been created.",
+        more: <button onClick={()=>{navigate('/account'); setMsg(null)}}>See Account</button>
+      });
       login({ email: newUserData.email, password: newUserData.password });  
     }
     else{
       console.error(result.error);
-      setMsg("Account creation failed with provided information.");
+      setMsg({
+        txt: "Account creation failed with provided information."
+      });
     }
   };
 
@@ -209,7 +240,15 @@ function App() {
 
   return (
     <>
-      <h1>Store</h1>
+      <div  className='site-Title'>
+        <h1><Link to={'/'}>ElectroCenter</Link></h1>
+      </div>
+      { auth.id &&
+        <div>
+         <h3><Link to={'/cart'}>cart</Link></h3>
+        </div>
+      }
+     
       {
         !auth.id ? <>
           {hasAccount? 
@@ -236,28 +275,22 @@ function App() {
 
       {msg && <DialogBox msg={msg} setMsg={setMsg}/>}
 
-      <ul className='products'>
-        {
-          products.map( product => {
-            const isInCart = cart.find(item => item.product_id === product.id);
-            return (
-              <li key={ product.id }>
-                <div  className={ isInCart ? 'favorite': 'least-favorite'}>
-                  <div>{ product.title }</div>
-                  <div>
-                    {
-                      auth.id && isInCart && <button onClick={()=> removeFromCart(product.id)}>remove</button>
-                    }
-                    {
-                      auth.id && !isInCart && <button onClick={()=> addToCart(product.id)}>add</button>
-                    }
-                  </div>
-                </div>
-              </li>
-            );
-          })
-        }
-      </ul>
+      <Routes>
+        <Route path="/" element={<Products auth={auth} cart={cart} setMsg={setMsg} 
+          addToCart={addToCart} removeFromCart={removeFromCart} products={products} />} 
+        />
+        <Route path="/:id" element={<SingleProduct auth={auth} cart={cart} setMsg={setMsg} 
+          addToCart={addToCart} removeFromCart={removeFromCart} />} 
+        />
+        <Route path="/cart" element={<Cart auth={auth} cart={cart} setCart={setCart} products={products}setMsg={setMsg} 
+          addToCart={addToCart} removeFromCart={removeFromCart} />} 
+        />
+        <Route path="/account" element={<Account auth={auth} cart={cart} products={products}setMsg={setMsg} 
+          addToCart={addToCart} removeFromCart={removeFromCart} />} 
+        />
+        
+      </Routes>
+
     </>
   )
 }
